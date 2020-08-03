@@ -6,4 +6,7 @@ data/*
 *.log
 output/
 *.list
+*.entity
+*.score
+.coverage
 !docker_faro_env_example.list
