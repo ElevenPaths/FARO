@@ -27,13 +27,21 @@ If on the other hand you want to develop or contribute to faro use the [developm
 
 ### Build Docker Production Environment
 
-First you'll need to retrieve the images binaries from our repo using `docker load`:
+First you'll need to download the images binaries from our repo to your target machine, for example:
 ```
-$ docker load --input https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/faro.tar.gz
-$ docker load --input https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/tika.tar.gz
+$ cd ~/Downloads
+$ wget https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/faro.tar.gz
+$ wget https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/tika.tar.gz
 ```
 
-Once you have retrieve those images you can launch FARO by running:
+Once in your target machine you'll need to load those images into docker, for example:
+
+```
+$ docker load --input ~/Downloads/faro.tar.gz
+$ docker load --input ~/Downloads/tika.tar.gz
+```
+
+Once you have loadaed those images you can launch FARO by running:
 ```
 $ cd docker
 $ docker-compose -f docker-compose-prod.yml up
