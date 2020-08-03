@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import logging
 
 logger = logging.getLogger(__name__)
 
 
-class Custom_Word_Detector(object):
+class CustomWordDetector(object):
     """ Detect custom words in texts """
 
     def _search_words_with_spacy(self, sentence, normalize_word=True):
@@ -37,7 +39,7 @@ class Custom_Word_Detector(object):
         for token in sentence.split(" "):
             if token.lower() in self.word_list:
                 detection_list.append(
-                    [token, "CUSTOM", token_offset, token_offset+len(token)])
+                    [token, "CUSTOM", token_offset, token_offset + len(token)])
 
             # Update offset_t = offset_t-1 + whitespace
             token_offset += len(token) + 1

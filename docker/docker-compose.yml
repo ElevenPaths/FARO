@@ -1,0 +1,49 @@
+version: '3.8'
+
+networks:
+  network1:
+    external: false
+    name: faro-net
+
+services:
+
+  faro-server:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfiles/faro/Dockerfile
+      args:
+        - TIKA_PORT=${TIKA_PORT:-9998}
+        - BUILD_FARO_SRC_PATH=${BUILD_FARO_SRC_PATH:-./}
+    image: faro
+    depends_on:
+      - tika-server
+    links:
+      - tika-server
+    # restart: on-failure
+    tty: true
+    networks:
+      - network1
+    volumes:
+      - "${FARO_SRC_PATH:-../}:/faro-project"
+    hostname: faro
+
+  tika-server:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfiles/tika/Dockerfile
+      args:
+        - TIKA_PORT=${TIKA_PORT:-9998}
+        - TIKA_CONFIG=${TIKA_CONFIG:-/base-tika-config.xml}
+    image: tika
+    command: ["./entrypoint.sh"]
+    healthcheck:
+        test: ["CMD", "./healthcheck.sh"]
+        interval: 10s
+        timeout: 3s
+        retries: 30
+    ports:
+      - "${TIKA_HOST_PORT:-9991}:${TIKA_PORT:-9998}"
+    restart: on-failure
+    networks:
+      - network1
+    hostname: tika

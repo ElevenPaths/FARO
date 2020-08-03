@@ -1,0 +1,37 @@
+version: '3.8'
+
+networks:
+  network1:
+    external: false
+    name: faro-net
+
+services:
+
+  faro-server:
+    image: faro
+    depends_on:
+      - tika-server
+    links:
+      - tika-server
+    # restart: on-failure
+    tty: true
+    networks:
+      - network1
+    volumes:
+      - "${FARO_SRC_PATH:-../}:/faro-project"
+    hostname: faro
+
+  tika-server:
+    image: tika
+    command: ["./entrypoint.sh"]
+    healthcheck:
+        test: ["CMD", "./healthcheck.sh"]
+        interval: 10s
+        timeout: 3s
+        retries: 30
+    ports:
+      - "${TIKA_HOST_PORT:-9991}:9998"
+    restart: on-failure
+    networks:
+      - network1
+    hostname: tika

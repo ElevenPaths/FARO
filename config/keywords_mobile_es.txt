@@ -1,9 +1,7 @@
 móvil
-móv.
-mov.
-telefono
+móv
+teléfono
 telf
 tlf
 tfno
-tel.
-teléfono
+tel

@@ -1,23 +1,52 @@
-logfilter_entity_list:
-    - Email
-    - FinancialData
-    - DNI_SPAIN
-    - MOBILE
-    - MONEY
-    - PER_PROF_ORG
-    - SIGNATURE
-    - CUSTOM
-    - PROB_CURRENCY
+features:
+  PER:
+    description: person
+    output: false
+  ORG:
+    description: organization
+    output: false
+  LOC:
+    description: localization
+    output: false
+  MISC:
+    description: miscelaneous
+    output: false
+  FINANCIAL_DATA:
+    description: financial_data
+    output: true
+  MONEY:
+    description: monetary_quantity
+    output: true
+  PROB_CURRENCY:
+    description: probable_currency_amount
+    output: false
+  EMAIL:
+    description: personal_email
+    output: true
+  CORP_EMAIL:
+    description: corporate_email
+    output: false
+  ID_DOCUMENT:
+    description: document_id
+    output: true
+  MOBILE:
+    description: mobile_phone_number
+    output: true
+  PHONE:
+    description: phone_number
+    output: false
+  SIGNATURE:
+    description: signature
+    output: true
+    max_distance: 15
+  CUSTOM:
+    description: custom_words
+    output: true
 
-sensitivity_list:
-    - low
-    - medium
-    - high
-
-sensitivity_multiple_kpis: 3
-
-sensitivity_keys_dump:
-    - person_position_organization
+# Features analyzed by faro that will be written to the output
+# together with the document metadata and final score
+# TODO: how to do this better, maybe wait until we have a frontend?
+scoring_output_features:
     - monetary_quantity
     - signature
     - personal_email
@@ -27,35 +56,15 @@ sensitivity_keys_dump:
     - custom_words
 
 
-ent_keys_dump:
-    PER: person
-    PROF: jobposition
-    ORG: organization
-    LOC: localization
-    PER_PROF_ORG: person_position_organization
-    FinancialData: financial_data
-    MONEY: monetary_quantity
-    Email: email
-    DNI_SPAIN: document_id
-    MOBILE: mobile_phone_number
-    PHONE: phone_number
-    SIGNATURE: signature
-    CUSTOM: custom_words
-    PROB_CURRENCY: prob_currency
+sensitivity_list:
+    - low
+    - medium
+    - high
 
-custom_word_list: config/keywords_custom_words.txt
-
-
-signature_max_distance: 15
-
-low_priority_list:
-    - PROB_CURRENCY
+sensitivity_multiple_kpis: 3
 
 sensitivity:
     low:
-        person_position_organization:
-            min: 1
-            max: 6
         monetary_quantity:
             min: 1
             max: 6
@@ -81,16 +90,14 @@ sensitivity:
             max: 0
 
         custom_words:
-            min: 1
-            max: 65535
+            min: 0
+            max: 0
 
     medium:
-        person_position_organization:
-            min: 6
-            max: 65535
         monetary_quantity:
             min: 6
             max: 65535
+
         signature:
             min: 1
             max: 2
@@ -112,16 +119,14 @@ sensitivity:
             max: 0
 
         custom_words:
-            min: 65535
-            max: 65535
+            min: 0
+            max: 0
 
     high:
-        person_position_organization:
-            min: 65535
-            max: 65535
         monetary_quantity:
             min: 65535
             max: 65535
+
         signature:
             min: 2
             max: 65535
@@ -143,6 +148,6 @@ sensitivity:
             max: 65535
 
         custom_words:
-            min: 65535
+            min: 1
             max: 65535
 

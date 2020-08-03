@@ -1,3 +1,24 @@
+2.0.0
+-----
+* Add password-protected/encrypted file detection and score them as high sensitivity
+* Remove gensim dependency
+* Remove pandas dependency
+* Remove luhn dependency
+* Remove murmurhash dependency
+* Remove custom regex library dependency and use standard package
+* Clean obsolete or transitive dependencies from requirements
+* Fix relative path with deep ancestors issue on the spider. Switch output to absolute paths since it gives more context
+* Allow Non-ascii characters on detailed entities output file
+* Include new contributors
+* Simplify configuration
+* Add testing and coverture metrics
+* Replace custom ML models with standard ones (Spacy) Cost-Benefit ratio signals is a better approach.
+* Remove scikit-learn and sklearn-crfsuite
+* Update spacy to most recent version
+* Decouple tika
+* Add Docker-compose to setup development and production environments
+
+
 1.1.2
 -----
 * Fix issue with logging while forcing OCR on PDF documents
