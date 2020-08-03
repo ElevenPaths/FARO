@@ -1,10 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import logging
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 
 
-class Corporative_Detection(object):
+logger = logging.getLogger(__name__)
 
-    def is_not_corp_email(self, email):
+
+class EmailFilter(object):
+
+    def is_corp_email(self, email):
         """ Detect if an email is not corporative
 
         Keyword arguments:
@@ -14,28 +20,31 @@ class Corporative_Detection(object):
 
         email_parts = email.split("@")
 
-        if self.corp_list is not None:
+        if self.excl_corp_list is not None:
             # search for corporative mail in list
-            for _corp in self.corp_list:
-                if _corp in email_parts:
-                    return False
+            for _corp in self.excl_corp_list:
+                if email_parts[0] == _corp:
+                    return True
 
         # searching for corporative mails of the type <company>@<company>.com
+        if fuzz.ratio(email_parts[0], email_parts[1].split(".")[0]) > self.fuzziness:
+            return True
+
+        # fuzzy searching for similar corporative mails
         _choice = process.extractOne(
-            email_parts[0], [email_parts[1]], scorer=fuzz.ratio)
+            email_parts[0], self.excl_corp_list, scorer=fuzz.ratio)
+        # returns candidate and ratio, we choose the ratio to check against threshold
+        if _choice[1] > self.fuzziness:
+            return True
 
-        if _choice[1] > 60:
-            return False
+        return False
 
-        return (True if self.email_model.predict(
-            [email_parts[0]])[0] == "1" else False)
-
-    def __init__(self, email_model, corp_list=None):
+    def __init__(self, excl_corp_list=None):
         """ Initalization
 
         Keyword arguments:
         email_model -- a model that detects corporative emails
 
         """
-        self.email_model = email_model
-        self.corp_list = corp_list
+        self.excl_corp_list = excl_corp_list
+        self.fuzziness = 90

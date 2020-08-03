@@ -1,33 +1,35 @@
-proximity_regexp_config:
-   CreditCard:
-       word_file: config/keywords_creditcard_es.txt
-       left_span_len: 20
-       right_span_len: 0
+regexp_config:
+  CreditCard:
+    word_file: keywords_creditcard_es.txt
+    left_span_len: 20
+    right_span_len: 0
 
-   FinancialData:
-       word_file: config/keywords_financialdata_es.txt
-       left_span_len: 20
-       right_span_len: 0
+  FinancialData:
+    word_file: keywords_financialdata_es.txt
+    left_span_len: 20
+    right_span_len: 0
 
-   DNI_SPAIN:
-       word_file: config/keywords_dni_spain_es.txt
-       left_span_len: 20
-       right_span_len: 0
+  DNI_SPAIN:
+    word_file: keywords_dni_spain_es.txt
+    left_span_len: 20
+    right_span_len: 0
 
-   PHONE:
-       word_file: config/keywords_phone_es.txt
-       left_span_len: 20
-       right_span_len: 0
+  PHONE:
+    word_file: keywords_phone_es.txt
+    left_span_len: 20
+    right_span_len: 0
 
-   MOBILE:
-       word_file: "config/keywords_mobile_es.txt"
-       left_span_len: 20
-       right_span_len: 0
+  MOBILE:
+    word_file: keywords_mobile_es.txt
+    left_span_len: 20
+    right_span_len: 0
 
+email_config:
+  excl_file: excl_corp_email_es.txt
 
-detection:
-    crf_ner_list: models/crf_professions_v1.joblib
-    personal_email_detection: models/email_detector.joblib
-    crf_ner_classic: "models/crf_classic_step1.joblib,models/crf_classic_step2.joblib,models/crf_classic_step3.joblib,models/crf_classic_step4.joblib,models/crf_classic_step5.joblib"
-    corp_mail_list: models/corp_mail_list.txt
+ner_config:
+  nlp_model : xx_ent_wiki_sm
+
+custom_config:
+  word_file: keywords_custom_words_es.txt
 
