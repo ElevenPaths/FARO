@@ -12,6 +12,7 @@ FARO (Document Sensitivity Detector)
     * [Prerequisites](#prerequisites)
     * [Virtual environment](#virtualenvironment)
     * [Dependencies](#dependencies)
+        * [Tika dependency](#tika-dependency)
     * [NER models](#ner-models)
     * [FARO Spider](#faro-spider)
         * [Finetune execution](#finetuning-faro-execution)
@@ -70,7 +71,7 @@ The mode requires some operative system and libraries in order to work properly
  * Java 1.7 or higher
  * virtualenv (not required but highly recommended)
  * GNU parallel to speed up our spider script. You can see more information about the tool [here](https://www.jduck.net/blog/2014/09/30/gnu-paralell/)
- * Apache tika up and running.
+ * Apache tika up and running -> Check [tika tooling](#tika-dependency)
 
  FARO is decoupled from tika so you need to make sure that you have a running tika server and that you point FARO towards that server endpoint `TIKA_SERVER_ENDPOINT`. Check this [wiki page](https://innovation-gitlab.e-paths.com/private/FARO/-/wikis/External-Tika) on resources to get you started.
 
@@ -106,6 +107,20 @@ The list of dependencies are the following:
 These other dependencies are used for testing:
 * coverage
 * nose
+
+#### Tika dependency
+
+We provide some utilities in order to get tika server up and running on your local machine in case is useful donwload this [zip file](https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/tika_external.zip) and uncompress somewhere in your local filesystem.
+
+To fire up tika run:
+```unix
+$ tika_start.sh
+```
+
+To stop tika server:
+```unix
+$ tika_stop.sh
+``
 
 ### NER models
 
