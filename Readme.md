@@ -39,7 +39,7 @@ Currently all the functionality of this tool is for documents written in Spanish
 
 This tool is developed by [TEGRA R&D Cybersecurity Center](#contributors).
 
-IF you are in a rush and just want to give it a try...go [here](#docker-production-environment)
+IF you are in a rush and just want to give it a try...go [here](docker/README.md#build-docker-production-environment)
 
 ## What’s in here?
 

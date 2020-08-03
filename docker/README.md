@@ -23,7 +23,7 @@ It may be obvious but let's be explicit....you need to have a working docker eng
 
 If you are only interested in using faro to quickly analyze some data you should use the production environment, read along.
 
-If on the other hand you want to develop or contribute to faro use the [development environment](#docker-development-environment)
+If on the other hand you want to develop or contribute to faro use the [development environment](#build-docker-development-environment)
 
 ### Build Docker Production Environment
 
