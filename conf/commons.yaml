@@ -1,0 +1,149 @@
+entities:
+  PER:
+    description: person
+    output: false
+  ORG:
+    description: organization
+    output: false
+  LOC:
+    description: localization
+    output: false
+  MISC:
+    description: miscelaneous
+    output: false
+  FINANCIAL_DATA:
+    description: financial_data
+    output: true
+    sensitivity:
+      low:
+        min: 0
+        max: 0
+      medium:
+        min: 0
+        max: 0
+      high:
+        min: 1
+        max: 65535
+  MONEY:
+    description: money
+    output: true
+    sensitivity:
+      low:
+        min: 1
+        max: 6
+      medium:
+        min: 6
+        max: 65535
+      high:
+        min: 65535
+        max: 65535
+  PROB_CURRENCY:
+    description: probable_currency_amount
+    output: false
+  EMAIL:
+    description: personal_email
+    output: true
+    sensitivity:
+      low:
+        min: 1
+        max: 2
+      medium:
+        min: 2
+        max: 65535
+      high:
+        min: 65535
+        max: 65535
+  CORP_EMAIL:
+    description: corporate_email
+    output: false
+  ID_DOCUMENT:
+    description: id_document
+    output: true
+    sensitivity:
+      low:
+        min: 0
+        max: 0
+      medium:
+        min: 0
+        max: 0
+      high:
+        min: 1
+        max: 65535
+  MOBILE:
+    description: mobile
+    output: true
+    sensitivity:
+      low:
+        min: 1
+        max: 2
+      medium:
+        min: 2
+        max: 4
+      high:
+        min: 4
+        max: 65535
+  PHONE:
+    description: phone
+    output: false
+  SIGNATURE:
+    description: signature
+    output: true
+    max_distance: 15
+    sensitivity:
+      low:
+        min: 0
+        max: 0
+      medium:
+        min: 1
+        max: 2
+      high:
+        min: 2
+        max: 65535
+  CUSTOM:
+    description: custom_word
+    output: true
+    sensitivity:
+      low:
+        min: 0
+        max: 0
+      medium:
+        min: 0
+        max: 0
+      high:
+        min: 1
+        max: 65535
+
+plugins:
+  all: false
+  available_list:
+      - financial_data
+      - mobile
+      - credit_card
+      - id_document
+      - phone
+      - money
+      - custom_word
+      - email
+      - corporate_email
+      - probable_currency_amount
+      - person
+      - organization
+      - signature
+      - address_bitcoin
+
+# These entities need to be synchronized with faro_spider.sh
+spider_output_entities:
+    - money
+    - signature
+    - personal_email
+    - mobile
+    - financial_data
+    - id_document
+    - custom_word
+
+sensitivity:
+  sensitivity_list:
+      - low
+      - medium
+      - high
+  sensitivity_multiple_kpis: 3

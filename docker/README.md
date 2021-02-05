@@ -30,8 +30,8 @@ If on the other hand you want to develop or contribute to faro use the [developm
 First you'll need to download the images binaries from our repo to your target machine, for example:
 ```
 $ cd ~/Downloads
-$ wget https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/faro.tar.gz
-$ wget https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/tika.tar.gz
+$ wget https://github.com/ElevenPaths/FARO/releases/download/v3.0.0/faro.tar.gz
+$ wget https://github.com/ElevenPaths/FARO/releases/download/v3.0.0/tika.tar.gz
 ```
 
 Once in your target machine you'll need to load those images into docker, for example:
@@ -91,7 +91,7 @@ FARO creates an "output" folder inside the parent folder of `docker` normally th
  * `output/scan.$CURRENT_TIME.csv`: is a csv file with the score given to the document and the frequence of indicators in each file.
 
 ```
-filepath,score,monetary_quantity,signature,personal_email,mobile_phone_number,financial_data,document_id,custom_words,meta:content-type,meta:author,meta:pages,meta:lang,meta:date,meta:filesize,meta:num_words,meta:num_chars,meta:ocr
+filepath,score,money,signature,personal_email,mobile,financial_data,id_document,custom_word,meta:content-type,meta:encrypted,meta:author,meta:pages,meta:lang,meta:date,meta:filesize,meta:ocr
 /Users/test/code/FARO_datasets/quick_test_data/Factura_NRU_0_1_001.pdf,high,0,0,0,0,0,1,4,application/pdf,Powered By Crystal,1,es,,85739,219,1185,False
 /Users/test/code/FARO_datasets/quick_test_data/Factura_Plancha.pdf,high,6,0,0,0,0,2,8,application/pdf,Python PDF Library - http://pybrary.net/pyPdf/,1,es,,77171,259,1524,True
 /Users/test/code/FARO_datasets/quick_test_data/20190912-FS2019.pdf,high,3,0,0,0,0,1,2,application/pdf,FPDF 1.6,1,es,2019-09-12T20:08:19Z,1545,62,648,False
@@ -100,9 +100,9 @@ filepath,score,monetary_quantity,signature,personal_email,mobile_phone_number,fi
 * `output/scan.$CURRENT_TIME.entity`: is a json with the list of indicators (disaggregated) extracted in a file. For example:
 
 ```
-{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_NRU_0_1_001.pdf", "entities": {"custom_words": {"facturar": 3, "total": 1}, "prob_currency": {"12,0021": 1, "12,00": 1, "9,92": 1, "3,9921": 1, "3,99": 1, "3,30": 1, "15,99": 1, "13,21": 1, "1.106.166": 1, "1,00": 1, "99,00": 1}, "document_id": {"89821284M": 1}}, "datetime": "2019-12-11 14:19:17"}
-{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_Plancha.pdf", "entities": {"document_id": {"H82547761": 1, "21809943D": 2}, "custom_words": {"factura": 2, "facturar": 2, "total": 2, "importe": 2}, "monetary_quantity": {"156,20": 4, "2,84": 2, "0,00": 2, "159,04": 2, "32,80": 4, "191,84": 2}, "prob_currency": {"1,00": 6, "189,00": 2}}, "datetime": "2019-12-11 14:19:27"}
-{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/20190912-FS2019.pdf", "entities": {"document_id": {"C-01107564": 1}, "custom_words": {"factura": 1, "total": 1}, "monetary_quantity": {"3,06": 1, "0,64": 1, "3,70": 1}}, "datetime": "2019-12-11 14:19:33"}
+{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_NRU_0_1_001.pdf", "entities": {"custom_word": {"facturar": 3, "total": 1}, "probable_currency_amount": {"12,0021": 1, "12,00": 1, "9,92": 1, "3,9921": 1, "3,99": 1, "3,30": 1, "15,99": 1, "13,21": 1, "1.106.166": 1, "1,00": 1, "99,00": 1}, "id_document": {"89821284M": 1}}, "datetime": "2019-12-11 14:19:17"}
+{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_Plancha.pdf", "entities": {"id_document": {"H82547761": 1, "21809943D": 2}, "custom_word": {"factura": 2, "facturar": 2, "total": 2, "importe": 2}, "money": {"156,20": 4, "2,84": 2, "0,00": 2, "159,04": 2, "32,80": 4, "191,84": 2}, "probable_currency_amount": {"1,00": 6, "189,00": 2}}, "datetime": "2019-12-11 14:19:27"}
+{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/20190912-FS2019.pdf", "entities": {"document_id": {"C-01107564": 1}, "custom_word": {"factura": 1, "total": 1}, "money": {"3,06": 1, "0,64": 1, "3,70": 1}}, "datetime": "2019-12-11 14:19:33"}
 ```
 
 ## Run tests

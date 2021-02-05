@@ -4,9 +4,22 @@
 data/*
 *.orig
 *.log
-output/
+*.env
 *.list
+output/
+input/
+.idea/
+*.list
+!docker_faro_env_example.list
+test-reports/*
+# Ensure no output files are published
 *.entity
 *.score
+# Ignore coverage stats and config
 .coverage
-!docker_faro_env_example.list
+nosetests.xml
+.keep
+venv
+*.log
+*.log*
+env

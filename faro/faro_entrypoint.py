@@ -1,31 +1,33 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import logging
-import io
-import os
-import sys
 import csv
-import yaml
-import json
-import time
 import datetime
-from langdetect import detect
-from langdetect import DetectorFactory
-from langdetect.lang_detect_exception import LangDetectException
-from faro.detector import Detector
-from faro.sensitivity_score import SensitivityScorer
-from .document import FARODocument
+import io
+import json
+import sys
+import time
+from pathlib import Path
 
-CWD = os.path.dirname(__file__)
-CONFIG_PATH = os.path.join(CWD, '..', 'config')
-MODELS_PATH = os.path.join(CWD, '..', 'models')
-_COMMONS_YAML = "%s/commons.yaml" % CONFIG_PATH
+import yaml
+from langdetect import DetectorFactory
+
+from conf import config
+from faro.document import FARODocument
+from faro.language.language_detection import language_detection
+from faro.sensitivity_score import SensitivityScorer
+from logger import logger
+from plugins.orchestrator import Orchestrator
+
+CWD = Path(__file__).parent.parent
+CONFIG_PATH = CWD / "conf"
+_COMMONS_YAML = CONFIG_PATH / "commons.yaml"
 
 ACCEPTED_LANGS = ["es"]
 # init the seeed of the lang detection algorithm
 DetectorFactory.seed = 0
 
-logger = logging.getLogger(__name__)
+script_name = Path(__file__).name
+faro_logger = logger.Logger(logger_name=script_name, file_name=config.LOG_FILE_NAME, logging_level=config.LOG_LEVEL)
 
 
 def _check_input_params(params):
@@ -46,27 +48,13 @@ def _check_input_params(params):
 
     if not hasattr(params, 'dump'):
         params.dump = False
+
+    if not hasattr(params, 'filehash'):
+        params.filehash = None
     return params
 
 
-def _customize_faro_engine_by_language(lang):
-    # TODO: refactor code, we need to simplify the flow since docs with no content
-    # go through a lot of unnecessary processing
-    if lang in ACCEPTED_LANGS:
-        with open("%s/%s.%s" % (CONFIG_PATH, lang, "yaml"), "r") as stream:
-            config = yaml.load(stream, Loader=yaml.FullLoader)
-
-    else:
-        logger.debug("Language {} is not fully supported. All the " +
-                     "functionality is only implemented for these languages: {}".format(
-                         lang, " ".join(ACCEPTED_LANGS)))
-
-        with open("%s/nolanguage.%s" % (CONFIG_PATH, "yaml"), "r") as stream:
-            config = yaml.load(stream, Loader=yaml.FullLoader)
-    return config
-
-
-def _generate_entities_output(entities, params, config):
+def _generate_entities_output(entities, params, conf):
     """
     Generate entities output humanizing feature descriptions
     """
@@ -75,16 +63,23 @@ def _generate_entities_output(entities, params, config):
     if not params.verbose:
         # Dict comprehension to filter out not verbose output
         filtered_entities = {k: v for k,
-                                      v in entities.items() if config["features"][k]["output"] == True}
+                                      v in entities.items() if conf["entities"][k]["output"] == True}
     else:
         filtered_entities = entities
 
-    output_entities = {config["features"][k]["description"]: v for k,
-                                                                   v in filtered_entities.items()}
+    output_entities = {conf["entities"][k]["description"]: v for k,
+                                                                 v in filtered_entities.items()}
 
     entity_dict = {"filepath": params.input_file,
                    "entities": output_entities,
                    "datetime": st}
+    return entity_dict
+
+
+def _persist_entities_output(entity_dict, params):
+    """
+    Persist detected entities to disk
+    """
     with io.open(params.output_entity_file, "a+") as f_out:
         f_out.write("{}\n".format(json.dumps(entity_dict, ensure_ascii=False)))
 
@@ -104,7 +99,7 @@ def _compute_scoring(scorer, entities, faro_doc):
     return result
 
 
-def _generate_scoring_output(result, params, config, faro_doc):
+def _generate_scoring_output(result, params, conf, faro_doc):
     # Adding metadata to output
     result.update(faro_doc.get_metadata())
 
@@ -117,23 +112,18 @@ def _generate_scoring_output(result, params, config, faro_doc):
     # Create list with output fieldnames
     header = ["id_file", "score"]
     #  Add all sensitive info categories
-    header.extend(config["scoring_output_features"])
+    header.extend(conf["spider_output_entities"])
     # Add document metadata
     header.extend(faro_doc.get_metadata().keys())
     writer = csv.DictWriter(sys.stdout, fieldnames=header,
                             extrasaction='ignore', restval=0)
     result["id_file"] = params.input_file
-    logging.debug("JSON (Entities detected) {}".format(
-        json.dumps(result, ensure_ascii=False)))
+    message = "JSON (Entities detected) {}".format(
+        json.dumps(result, ensure_ascii=False))
+    faro_logger.debug(script_name,
+                      _generate_scoring_output.__name__,
+                      message)
     writer.writerow(result)
-
-
-def language_detection(file_lines):
-    try:
-        lang = detect(" ".join(file_lines))
-    except LangDetectException:
-        lang = "unk"
-    return lang
 
 
 def faro_execute(params):
@@ -141,37 +131,43 @@ def faro_execute(params):
     # Validate params
     params = _check_input_params(params)
     # reading commons configuration
-    with open(_COMMONS_YAML, "r") as f_stream:
+    with open(_COMMONS_YAML, "r", encoding='utf8') as f_stream:
         commons_config = yaml.load(f_stream, Loader=yaml.FullLoader)
 
     # parse input file and join sentences if requested
-    logger.info("Analysing {}".format(params.input_file))
+    message = "Analysing {}".format(params.input_file)
+    faro_logger.info(script_name, faro_execute.__name__, message)
 
     # Initialize our document representation
     faro_doc = FARODocument(params.input_file, params.split_lines)
     # Parse document and extract content and metadata
-    faro_doc.get_document_data()
+    faro_doc.parse_document_data()
 
     # Language customization
     lang = language_detection(faro_doc.content)
     faro_doc.set_language(lang)
-    config = _customize_faro_engine_by_language(lang)
+    lang = {"lang": lang}
 
     # joining two dicts with configurations
     # config becomes a shallowly merged dictionary with values from commons_config
-    #  replacing those from config
-    config = {**config, **commons_config}
+    # replacing those from config
+    conf = {**lang, **commons_config}
 
-    # instantiate detector with current configuration
-    my_detector = Detector(config)
-    # Detect features in the document content
-    entities_dict = my_detector.analyse(faro_doc.content)
+    faro_logger.debug(script_name, faro_execute.__name__, "Running plug-ins")
+    orchestrator = Orchestrator(conf)
+    entities_dict = orchestrator.run_plugins(str(faro_doc.content))
 
     # Initialize our scoring class
-    scorer = SensitivityScorer(config)
+    scorer = SensitivityScorer(conf)
+
     # score the document, given the extracted entities
-    result = _compute_scoring(scorer, entities_dict, faro_doc)
+    scoring = _compute_scoring(scorer, entities_dict, faro_doc)
 
     # output
-    _generate_entities_output(entities_dict, params, config)
-    _generate_scoring_output(result, params, config, faro_doc)
+    result = _generate_entities_output(entities_dict, params, conf)
+
+    faro_logger.debug(script_name, faro_execute.__name__, str(entities_dict))
+    faro_logger.debug(script_name, faro_execute.__name__, str(result))
+
+    _persist_entities_output(result, params)
+    _generate_scoring_output(scoring, params, conf, faro_doc)

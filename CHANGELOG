@@ -1,3 +1,16 @@
+3.0.0
+-----
+* Update FARO to allow for plug-in support.
+* Decouple FARO 2.0.0 functionality to be run separately in plug-ins
+* Add plug-in template to use as a guide for new plug-in integration
+* Add plug-in example (address_bitcoin plus tests) based on plug-in template
+* Add option to run all plugins in configurable path
+* Move tests to separate package
+* Simplify configuration
+* Support for logging configuration
+* Update to tika 1.24
+
+
 2.0.0
 -----
 * Add password-protected/encrypted file detection and score them as high sensitivity

@@ -47,7 +47,12 @@ IF you are in a rush and just want to give it a try...go [here](docker/README.md
 The project contains the following folders:
 
  * `faro/` : this is FARO module with the main functionality and tests
- * `config/`: yaml configuration files go here. There is one yaml file per language (plus one `nolanguage.yaml` to provide basic functionality for non detected languages) and one yaml file with common configurations for all languages `config/commons.yaml`.
+ * `conf/`: yaml configuration files go here. There is one yaml file per language (plus one `nolanguage.yaml` to provide basic functionality for non detected languages) and one yaml file with common configurations for all languages `config/commons.yaml`.
+ * `plugins/`: Stores all the available plugins to detect sensitive information with the appropiate language support.
+ * `utils/`: Utilities for faro execution, for example pre-process of texts and root classes to implement common plugin functionality.
+ * `docker/`: Everything related with the execution of faro in a container squema.
+ * `test/`: Unit tests for faro.
+ * `logs/` and `logger/`: Definition and storage of logging.
  * `faro_detection.py`: launcher of FARO for standalone operation over a single file.
  * `faro_spider.sh`: script for bulk processing.
  * `nose.cfg`: Configuration for testing faro
@@ -110,7 +115,7 @@ These other dependencies are used for testing:
 
 #### Tika dependency
 
-We provide some utilities in order to get tika server up and running on your local machine in case is useful donwload this [zip file](https://github.com/ElevenPaths/FARO/releases/download/v2.0.0/tika_external.zip) and uncompress somewhere in your local filesystem.
+We provide some utilities in order to get tika server up and running on your local machine in case is useful donwload this [zip file](https://github.com/ElevenPaths/FARO/releases/download/v3.0.0/tika_external.zip) and uncompress somewhere in your local filesystem.
 
 To fire up tika run:
 ```unix
@@ -120,7 +125,7 @@ $ tika_start.sh
 To stop tika server:
 ```unix
 $ tika_stop.sh
-``
+```
 
 ### NER models
 
@@ -148,7 +153,7 @@ FARO creates an "output" folder inside the parent folder of `docker` normally th
  * `output/scan.$CURRENT_TIME.csv`: is a csv file with the score given to the document and the frequence of indicators in each file.
 
 ```
-filepath,score,monetary_quantity,signature,personal_email,mobile_phone_number,financial_data,document_id,custom_words,meta:content-type,meta:author,meta:pages,meta:lang,meta:date,meta:filesize,meta:num_words,meta:num_chars,meta:ocr
+filepath,score,money,signature,personal_email,mobile,financial_data,id_document,custom_word,meta:content-type,meta:encrypted,meta:author,meta:pages,meta:lang,meta:date,meta:filesize,meta:ocr
 /Users/test/code/FARO_datasets/quick_test_data/Factura_NRU_0_1_001.pdf,high,0,0,0,0,0,1,4,application/pdf,Powered By Crystal,1,es,,85739,219,1185,False
 /Users/test/code/FARO_datasets/quick_test_data/Factura_Plancha.pdf,high,6,0,0,0,0,2,8,application/pdf,Python PDF Library - http://pybrary.net/pyPdf/,1,es,,77171,259,1524,True
 /Users/test/code/FARO_datasets/quick_test_data/20190912-FS2019.pdf,high,3,0,0,0,0,1,2,application/pdf,FPDF 1.6,1,es,2019-09-12T20:08:19Z,1545,62,648,False
@@ -157,17 +162,17 @@ filepath,score,monetary_quantity,signature,personal_email,mobile_phone_number,fi
 * `output/scan.$CURRENT_TIME.entity`: is a json with the list of indicators (disaggregated) extracted in a file. For example:
 
 ```
-{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_NRU_0_1_001.pdf", "entities": {"custom_words": {"facturar": 3, "total": 1}, "prob_currency": {"12,0021": 1, "12,00": 1, "9,92": 1, "3,9921": 1, "3,99": 1, "3,30": 1, "15,99": 1, "13,21": 1, "1.106.166": 1, "1,00": 1, "99,00": 1}, "document_id": {"89821284M": 1}}, "datetime": "2019-12-11 14:19:17"}
-{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_Plancha.pdf", "entities": {"document_id": {"H82547761": 1, "21809943D": 2}, "custom_words": {"factura": 2, "facturar": 2, "total": 2, "importe": 2}, "monetary_quantity": {"156,20": 4, "2,84": 2, "0,00": 2, "159,04": 2, "32,80": 4, "191,84": 2}, "prob_currency": {"1,00": 6, "189,00": 2}}, "datetime": "2019-12-11 14:19:27"}
-{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/20190912-FS2019.pdf", "entities": {"document_id": {"C-01107564": 1}, "custom_words": {"factura": 1, "total": 1}, "monetary_quantity": {"3,06": 1, "0,64": 1, "3,70": 1}}, "datetime": "2019-12-11 14:19:33"}
+{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_NRU_0_1_001.pdf", "entities": {"custom_word": {"facturar": 3, "total": 1}, "probable_currency_amount": {"12,0021": 1, "12,00": 1, "9,92": 1, "3,9921": 1, "3,99": 1, "3,30": 1, "15,99": 1, "13,21": 1, "1.106.166": 1, "1,00": 1, "99,00": 1}, "id_document": {"89821284M": 1}}, "datetime": "2019-12-11 14:19:17"}
+{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/Factura_Plancha.pdf", "entities": {"id_document": {"H82547761": 1, "21809943D": 2}, "custom_word": {"factura": 2, "facturar": 2, "total": 2, "importe": 2}, "money": {"156,20": 4, "2,84": 2, "0,00": 2, "159,04": 2, "32,80": 4, "191,84": 2}, "probable_currency_amount": {"1,00": 6, "189,00": 2}}, "datetime": "2019-12-11 14:19:27"}
+{"filepath": "/Users/test/code/FARO_datasets/quick_test_data/20190912-FS2019.pdf", "entities": {"document_id": {"C-01107564": 1}, "custom_word": {"factura": 1, "total": 1}, "money": {"3,06": 1, "0,64": 1, "3,70": 1}}, "datetime": "2019-12-11 14:19:33"}
 ```
 
 #### Finetuning Faro Execution
 After adding OCR there are some configuration that can be customized for FARO execution through environment variables:
 
 * `FARO_DISABLE_OCR`: if this variable is found (with any value) FARO will not execute OCR on the documents
-* `FARO_REQUESTS_TIMEOUT`: Number of seconds before FARO will timeout if the tika server does not respond (default: 60)
-* `FARO_PDF_OCR_RATIO`: Bytes per character used in PDF mixed documents (text and images) to force OCR (default: 150 bytes/char)
+* `FARO_REQUESTS_TIMEOUT`: Number of seconds before FARO will timeout if the tika server does not respond (default: 300)
+* `FARO_PDF_OCR_RATIO`: Bytes per character used in PDF mixed documents (text and images) to force OCR (default: 500 bytes/char)
 
 Logging configuration can also be configured through environment variables:
 
@@ -205,7 +210,7 @@ a) `<your_file>.entity`: a json with the list of entities ordered by their type 
 b) `<your_file>.score`:  a json with the types of entities and the number this type of entity appears in the text. This json also contains the sensitivy score in the property "score" (it can be "low", "medium" and "high").
 
 ```
-{"score": "high", "summary": {"monetary_quantity": 1, "mobile_phone_number": 1, "personal_email": 1, "credit_account_number": 2}}
+{"score": "high", "summary": {"money": 1, "mobile": 1, "personal_email": 1, "financial_data": 2}}
 ```
 
 For information about additional arguments that can be passed to our detection script, take a look [here](#faro-detection-additional-arguments).
@@ -220,17 +225,17 @@ The FARO entity detector performs two steps:
 
 The list of indicators are the following:
 
- * **monetary_quantity**: money quantity (currently only euros and dollars are supported).
+ * **money**: money quantity (currently only euros and dollars are supported).
 
  * **signature**: it outputs the person who signs a document
 
  * **personal_email**: emails that are not corporative (e.g. not info@ rrhh@ )
 
- * **mobile_phone_number**: mobile phone numbers (filtering out non mobile ones)
+ * **mobile**: mobile phone numbers (filtering out non mobile ones)
 
  * **financial_data**: credit cards and IBAN account numbers
 
- * **document_id**: Spanish NIF and CIF.
+ * **id_document**: Spanish NIF and CIF.
 
 The unique counts of these sentences are gathered in a json object and relayed as input to the next step.
 
@@ -246,51 +251,48 @@ The following rules are applied:
 
 ### Configuration
 
-It employs a YAML set of files for configuring its functionality (the YAML files are located inside the "config" folder)
+It employs a YAML set of files for configuring its functionality (the YAML files are located inside the "conf" folder)
 
-* common.yaml: has the common functionality to every language
-
-* <lang code>.yaml: has the specific configuration for a language (currently only spanish is supported: "es" code). It also indicates where the ML Models are located (e.g. by default inside the "models" folder)
+* `common.yaml`: has the common configuration for the tool.
+* `config.py`: Sets the logging for faro execution
 
 #### Configuration of the sensitivity score
 
 Those are a collection of conditions that selects a score following the specification of the configuration file. The levels are configured in the sensitivity_list sorted by their intensity (from less to more sensitive). The sensitivity dict contains the conditions (min, max) ordered by type of entity. The system only needs to fulfill one condition of a certain level in order to flag the document with that level of sensitivity. Furtheremore if multiple KPIs of a certain leve are found in the document (as marked by the sensitivity_multiple_kpis parameter), the system increases their sensitivity level (e.g. from medium to high).
 
 ```
-sensitivity_list:
-    - low
-    - medium
-    - high
-
-
-sensitivity_multiple_kpis: 3
-
 sensitivity:
-    low:
-        person_position:
-            min: 1
-            max: 5
-        monetary_quantity:
-            min: 1
-            max: 5
-
-        signature:
-            min: 0
-            max: 0
-
-        personal_email:
-            min: 0
-            max: 0
-
-        ....
-
+  sensitivity_list:
+      - low
+      - medium
+      - high
+  sensitivity_multiple_kpis: 3
 ```
 
 * sensitivity_list is the list of different sensitivity scores ordered by intensity.
 
 * sensitivity_multiple_kpis this number indicates the simultaneous number of scores in a level allowed before leveling up the sensitivy score
 
-* sensitivity is a dict with the sensitivity conditions that must be satisfied in order to reach a sensitivity level.
+Also each entity can be configured in terms of the amount of presence needed to be scored as each level: low, medium or high. by using a sensitivity dict with the sensitivity conditions that must be satisfied in order to reach a sensitivity level.
+
+```
+entities:
+  MONEY:
+    description: money
+    output: true
+    sensitivity:
+      low:
+        min: 1
+        max: 6
+      medium:
+        min: 6
+        max: 65535
+      high:
+        min: 65535
+        max: 65535
+        ....
+```
+
 
 ### Supported Input File Formats
 
@@ -309,8 +311,8 @@ Mails are extracted with RegExp. A ML classifier and heuristics are used to dist
 `--dump`: the system dumps the information of <your_file>.score to stdout in csv format. E.g. an example of output might be:
 
 ```
-id_file,score,person_jobposition_organization,monetary_quantity,sign,personal_email,mobile_phone_number,credit_account_number,id_document
-data/test/test2.pdf,medium,3,0,1,0,0,0,0
+filepath,score,money,signature,personal_email,mobile,financial_data,id_document,custom_word,meta:content-type,meta:encrypted,meta:author,meta:pages,meta:lang,meta:date,meta:filesize,meta:ocr
+/Users/test/code/FARO_datasets/quick_test_data/Factura_NRU_0_1_001.pdf,high,0,0,0,0,0,1,4,application/pdf,Powered By Crystal,1,es,,85739,219,1185,False
 
 ```
 

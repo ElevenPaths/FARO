@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import logging
-from .utils import preprocess_file_content
-from .io_parser import parse_file
+import os
+from conf import config
 from collections import OrderedDict
+
+from faro.io_parser import parse_file
+from logger import logger
+from utils.utils import preprocess_file_content
 
 META_AUTHOR = "meta:author"
 META_CONTENT_TYPE = "meta:content-type"
@@ -14,7 +18,8 @@ META_DATE = "meta:date"
 META_FILE_SIZE = "meta:filesize"
 META_OCR = "meta:ocr"
 
-logger = logging.getLogger(__name__)
+script_name = os.path.basename(__file__)
+faro_logger = logger.Logger(logger_name=script_name, file_name=config.LOG_FILE_NAME, logging_level=config.LOG_LEVEL)
 
 
 def _assign_author_metadata(metadata):
@@ -144,7 +149,8 @@ class FARODocument(object):
         meta_dict -- dict of metadata (as returned by tika)
 
         """
-        logger.debug("METADATA DICT {}".format(metadata))
+        message = "METADATA DICT {}".format(metadata)
+        faro_logger.debug(script_name, self._parse_metadata.__name__, message)
 
         if metadata is None:
             self.metadata_error = True
@@ -170,14 +176,14 @@ class FARODocument(object):
         # Creation date
         self.creation_date = _assign_creation_date_metadata(metadata)
 
-    def get_document_data(self):
+    def parse_document_data(self):
         """
         Launch tika parser and retrieve both content and metadata
         """
         # parse input file and join sentences if requested
         try:
             tika_content, tika_metadata = parse_file(self.document_path)
-        except Exception:
+        except Exception as e:
             tika_content = ""
             tika_metadata = None
 
@@ -196,3 +202,4 @@ class FARODocument(object):
         self.document_path = document_path
         # store wether or not we should split lines or not
         self.split_lines = split_lines
+        self.content = {}
