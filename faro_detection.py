@@ -1,25 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
 import argparse
-import logging
+from pathlib import Path
+
+from conf import config
 from faro.faro_entrypoint import faro_execute
+from logger import logger
 
-
-def run(params):
-    log_level = os.getenv('FARO_LOG_LEVEL', "INFO")
-    log_file = os.getenv('FARO_LOG_FILE', None)
-    handlers = [logging.StreamHandler()]
-    if log_file is not None:
-        handlers.append(logging.FileHandler(log_file))
-    logging.basicConfig(
-        level=log_level,
-        format="%(levelname)s: %(name)20s: %(message)s",
-        handlers=handlers
-    )
-    faro_execute(params)
-
+script_name = Path(__file__).name
+faro_logger = logger.Logger(logger_name=script_name, file_name=config.LOG_FILE_NAME, logging_level=config.LOG_LEVEL)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -58,4 +48,4 @@ if __name__ == "__main__":
     if params.output_score_file is None:
         params.output_score_file = "{}{}".format(params.input_file, ".score")
 
-    run(params)
+    faro_execute(params)

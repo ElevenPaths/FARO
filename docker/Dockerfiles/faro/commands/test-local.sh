@@ -17,4 +17,4 @@ then
   echo "Error: Looks like tika server is unreachable"
   exit 1
 fi
-nosetests -sv ./test_*.py ./faro/test/test_*.py --with-coverage --cover-package=faro
+nosetests -sv ./test/test_*.py --with-coverage --cover-package=faro

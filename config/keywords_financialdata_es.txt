@@ -1,5 +1,0 @@
-cuenta
-corriente
-bancaria
-iban
-ccc

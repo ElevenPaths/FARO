@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import logging
+import os
+from conf import config
+from logger import logger
 
-logger = logging.getLogger(__name__)
+script_name = os.path.basename(__file__)
+faro_logger = logger.Logger(logger_name=script_name, file_name=config.LOG_FILE_NAME, logging_level=config.LOG_LEVEL)
 
 
 class SensitivityScorer(object):
@@ -12,15 +16,16 @@ class SensitivityScorer(object):
         # check if two or more index surpass the min specified
         above_min = 0
 
-        for key in summary_dict:
-            try:
-                if summary_dict[key] >= self.ranking_dict[
-                    self.sensitivity_list[current_idx]
-                ][key]["min"]:
-                    above_min += 1
-            except KeyError:
-                logger.debug("could not find %s in scoring computation" % (
-                    key))
+        for key in self.features:
+            if self.features[key]['description'] in summary_dict:
+                try:
+                    if summary_dict[self.features[key]['description']] >= self.features[key]["sensitivity"][
+                        self.sensitivity_list[current_idx]
+                    ]["min"]:
+                        above_min += 1
+                except KeyError:
+                    message = "Could not find %s in scoring computation" % key
+                    faro_logger.debug(script_name, self._check_index_surpass_min_specified.__name__, message)
 
         if (above_min > self.sensitivity_multiple_kpis and
                 current_idx < len(self.sensitivity_list) - 1):
@@ -36,23 +41,23 @@ class SensitivityScorer(object):
         reached_min = False
         current_idx = 0
 
-        for key in summary_dict:
-            try:
-                while (self.ranking_dict[self.sensitivity_list[
-                    current_idx]
-                       ][key]["max"] <= summary_dict[key]):
-                    current_idx += 1
-                    reached_min = True
-                    # check if we are already in the max level of sensitivity
-                    if current_idx == len(self.sensitivity_list) - 1:
-                        break
+        for key in self.features:
+            if self.features[key]['description'] in summary_dict:
+                try:
+                    while self.features[key]["sensitivity"][self.sensitivity_list[current_idx]]["max"] \
+                            <= summary_dict[self.features[key]['description']]:
+                        current_idx += 1
+                        reached_min = True
+                        # check if we are already in the max level of sensitivity
+                        if current_idx == len(self.sensitivity_list) - 1:
+                            break
 
-                if summary_dict[key] >= self.ranking_dict[
-                    self.sensitivity_list[current_idx]][key]["min"]:
-                    reached_min = True
-            except KeyError:
-                logger.debug("could not find %s in scoring computation" % (
-                    key))
+                    if summary_dict[self.features[key]['description']] >= \
+                            self.features[key]["sensitivity"][self.sensitivity_list[current_idx]]["min"]:
+                        reached_min = True
+                except KeyError:
+                    message = "could not find %s in scoring computation" % key
+                    faro_logger.debug(script_name, self._get_ranking.__name__, message)
 
         if reached_min:
             self._check_index_surpass_min_specified(summary_dict, current_idx)
@@ -95,14 +100,14 @@ class SensitivityScorer(object):
         result_dict["score"] = self._get_ranking(result_dict)
         return result_dict
 
-    def __init__(self, config):
+    def __init__(self, conf):
         """ Initialization
 
         Keyword arguments:
         faro configuration
 
         """
-        self.ranking_dict = config['sensitivity']
-        self.sensitivity_list = config['sensitivity_list']
-        self.sensitivity_multiple_kpis = config['sensitivity_multiple_kpis']
-        self.features = config['features']
+
+        self.sensitivity_list = conf['sensitivity']['sensitivity_list']
+        self.features = conf['entities']
+        self.sensitivity_multiple_kpis = conf['sensitivity']['sensitivity_multiple_kpis']

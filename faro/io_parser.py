@@ -1,15 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import logging
-from tika import parser, tika
 import collections
+import logging
 import os
+import sys
+from pathlib import Path
 
-logger = logging.getLogger(__name__)
+from conf import config
+from logger import logger
+from tika import parser, tika
+
 # Tika-python will assume the server is running and will not try to download nor start a new tika server
+from utils.utils import log_exception
+
 tika.TikaClientOnly = True
 
 CHARS_PER_PAGE_PDF = 'pdf:charsPerPage'
+
+script_name = Path(__file__).name
+faro_logger = logger.Logger(logger_name=script_name, file_name=config.LOG_FILE_NAME, logging_level=config.LOG_LEVEL)
 
 
 def flatten(iterable):
@@ -35,18 +44,19 @@ def _is_run_ocr(parsed, file_size, pdf_ocr_ratio):
         force_ocr = True
     else:
         filesize_chars_ratio = file_size / chars
-        logger.debug("PDF filesize_chars_ratio: {:.2f}".format(filesize_chars_ratio))
+        message = "size: {}, chars: {}, ratio: {}".format(
+            file_size,
+            chars,
+            filesize_chars_ratio)
+        faro_logger.debug(script_name, _is_run_ocr.__name__, message)
         if filesize_chars_ratio > pdf_ocr_ratio:
             force_ocr = True
-            logger.debug('size: {}, chars: {}, ratio: {}'.format(
-                file_size,
-                chars,
-                filesize_chars_ratio))
     return force_ocr
 
 
 def _run_force_ocr(parsed, file_path, request_options):
-    logger.info("performing OCR on PDF file: {}".format(file_path))
+    message = "performing OCR on PDF file: {}".format(file_path)
+    faro_logger.info(script_name, _run_force_ocr.__name__, message)
     parsed['metadata']['ocr_parsing'] = True
     parsed_ocr_text = parser.from_file(
         file_path,
@@ -74,15 +84,16 @@ def _smarter_strategy_ocr_pdf(parsed, disable_ocr, file_size, pdf_ocr_ratio, fil
 
             if parsed['metadata']['Content-Type'] == 'application/pdf':
                 force_ocr = _is_run_ocr(parsed, file_size, pdf_ocr_ratio)
-
+                message = "force_ocr {}".format(force_ocr)
+                faro_logger.debug(script_name, _smarter_strategy_ocr_pdf.__name__, message)
                 if force_ocr:
                     _run_force_ocr(parsed, file_path, request_options)
 
         except KeyError as e:
-            logger.debug("Did not find key {} in metadata".format(e))
+            log_exception(faro_logger, script_name, _smarter_strategy_ocr_pdf.__name__, e, sys)
             raise e
         except Exception as e:
-            logger.error("Unexpected exception while treating PDF OCR strategy {}".format(e))
+            log_exception(faro_logger, script_name, _smarter_strategy_ocr_pdf.__name__, e, sys)
             raise e
 
 
@@ -96,8 +107,8 @@ def parse_file(file_path):
     """
 
     # Retrieve envvars
-    timeout = int(os.getenv('FARO_REQUESTS_TIMEOUT', 60))
-    pdf_ocr_ratio = int(os.getenv('FARO_PDF_OCR_RATIO', 150))
+    timeout = int(os.getenv('FARO_REQUESTS_TIMEOUT', 300))
+    pdf_ocr_ratio = int(os.getenv('FARO_PDF_OCR_RATIO', 500))
     disable_ocr = os.getenv('FARO_DISABLE_OCR', False)
 
     # OCR is time consuming we will need to raise the request timeout to allow for processing
@@ -116,7 +127,7 @@ def parse_file(file_path):
         if 'X-TIKA:EXCEPTION:runtime' in parsed['metadata']:
             return parsed['content'], parsed['metadata']
     except Exception as e:
-        logger.error("Unexpected exception during parsing {}".format(e))
+        log_exception(faro_logger, script_name, _smarter_strategy_ocr_pdf.__name__, e, sys)
         raise e
 
     # try to implement a smarter strategy for OCRing PDFs

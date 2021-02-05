@@ -1,0 +1,11 @@
+regexp_config:
+  Context:
+    word_file: context.txt
+    left_span_len: 20
+    right_span_len: 0
+  Context-left:
+    word_file: context.txt
+    span_len: 20
+  Context-right:
+    word_file: context.txt
+    span_len: 0
