@@ -18,7 +18,6 @@ test-reports/*
 # Ignore coverage stats and config
 .coverage
 nosetests.xml
-.keep
 venv
 *.log
 *.log*
